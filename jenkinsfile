@@ -1,0 +1,14 @@
+@Library('shared-library') _
+pipeline{
+Agent Any
+stages {
+stage('Init Env'){
+steps{
+script{
+awsEnv(this)
+}
+}
+}
+stage('checkout'){
+steps{
+git checkout
