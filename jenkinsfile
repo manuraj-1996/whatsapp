@@ -11,4 +11,51 @@ awsEnv(this)
 }
 stage('checkout'){
 steps{
-git checkout
+gitCheckout()
+}
+}
+stage('Build and Test(Maven)'){
+steps{
+mvnBuild()
+}
+}
+stage('Build Docker image'){
+steps{
+script{
+dockerBuild(imageName: env.IMAGE_Name)
+}
+}
+}
+stage('ECR login'){
+steps{
+script{
+ecrLogin(config)
+}
+}
+}
+stage('Tag Docker Image'){
+steps{
+script{
+dockerTag(imageName: env.Image_Name, ecrURL: env.ECR_URL, tags: env.APP_VERSION)
+}
+}
+}
+stage('push to ECR'){
+steps{
+script{
+dockerPush(ecrUrl: env.ECR_URL, tag: env.APP_VERSION)
+}
+}
+}
+post{
+success{
+echo 'pipeline executed successfully!'
+}
+failure{
+echo 'pipeline failed, check logs for details'
+}
+always{
+cleanWS()
+}
+}
+}
