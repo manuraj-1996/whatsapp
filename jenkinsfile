@@ -51,6 +51,7 @@ dockerPush(ecrUrl: env.ECR_URL, tag: env.APP_VERSION)
 }
 }
 }
+}
 post{
 success{
 echo 'pipeline executed successfully!'
@@ -62,5 +63,4 @@ always{
 cleanWS()
 }
 }
-}
-}
+
