@@ -60,7 +60,7 @@ failure{
 echo 'pipeline failed, check logs for details'
 }
 always{
-cleanWS()
+cleanWs()
 }
 }
 }
