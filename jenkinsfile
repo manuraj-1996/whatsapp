@@ -1,6 +1,10 @@
 @Library('shared-library') _
 pipeline{
-Agent Any
+agent any
+
+triggers {
+        githubPush()
+    }
 stages {
 stage('Init Env'){
 steps{
