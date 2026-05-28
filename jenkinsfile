@@ -1,19 +1,23 @@
 @Library('shared-library') _
 pipeline{
 agent any
-
-triggers {
-        githubPush()
+parameters {
+        string(name: 'AWS', defaultValue: 'ecommerce')
     }
 stages {
-stage('Init Env'){
-steps{
-script{
-awsEnv(this)
-}
-}
-}
-stage('checkout'){
+stage('Initialize') {
+            steps {
+                script {
+                    def config = awsEnv(params.AWS)
+                    env.ACCOUNT_ID = config.ACCOUNT_ID
+                    env.AWS_REGION = config.AWS_REGION
+                    env.ECR_REPO   = config.ECR_REPO
+                    env.ECR_URL    = config.ECR_URL
+                    env.GIT_URL    = config.GIT_URL
+                }
+            }
+        }
+stage('Checkout'){
 steps{
 gitCheckout()
 }
@@ -26,7 +30,7 @@ mvnBuild()
 stage('Build Docker image') {
 steps{
 script{
-dockerBuild(imageName: env.IMAGE_Name)
+dockerBuild(imageName: env.IMAGE_NAME)
 }
 }
 }
