@@ -9,7 +9,7 @@ stages {
 stage('Init Env'){
 steps{
 script{
-awsEnv(script)
+awsEnv(this)
 }
 }
 }
