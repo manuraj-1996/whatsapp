@@ -1,6 +1,7 @@
 @Library('shared-library') _
 
 pipeline {
+
     agent any
 
     parameters {
@@ -10,75 +11,97 @@ pipeline {
     stages {
 
         stage('Initialize') {
+
             steps {
+
                 script {
 
-                    awsEnv(this, [
-                        credentialsId: 'aws-creds',
-                        region: 'us-east-1',
-                        accountId: '772064137213'
-                    ])
+                    def config = awsEnv(params.AWS)
 
-                    // everything is now in env automatically
+                    env.ACCOUNT_ID = config.ACCOUNT_ID
+                    env.AWS_REGION = config.AWS_REGION
+                    env.ECR_REPO   = config.ECR_REPO
+                    env.ECR_URL    = config.ECR_URL
+                    env.GIT_URL    = config.GIT_URL
+                    env.IMAGE_NAME = config.ECR_REPO
                 }
             }
         }
 
         stage('Checkout') {
+
             steps {
                 gitCheckout()
             }
         }
 
         stage('Build and Test (Maven)') {
+
             steps {
                 mvnBuild()
             }
         }
 
         stage('Build Docker image') {
+
             steps {
-                dockerBuild(imageName: env.ECR_REPO)
+
+                script {
+                    dockerBuild(imageName: env.IMAGE_NAME)
+                }
             }
         }
 
         stage('ECR login') {
+
             steps {
-                ecrLogin([
-                    credentialsId: 'aws-creds',
-                    region: env.AWS_REGION,
-                    accountId: env.ACCOUNT_ID
-                ])
+
+                script {
+                    ecrLogin()
+                }
             }
         }
 
         stage('Tag Docker Image') {
+
             steps {
-                dockerTag(
-                    imageName: env.ECR_REPO,
-                    ecrURL: env.ECR_URL,
-                    tag: env.APP_VERSION
-                )
+
+                script {
+
+                    dockerTag(
+                        imageName: env.IMAGE_NAME,
+                        ecrURL: env.ECR_URL,
+                        tags: env.APP_VERSION
+                    )
+                }
             }
         }
 
         stage('Push to ECR') {
+
             steps {
-                dockerPush(
-                    ecrUrl: env.ECR_URL,
-                    tag: env.APP_VERSION
-                )
+
+                script {
+
+                    dockerPush(
+                        ecrUrl: env.ECR_URL,
+                        tag: env.APP_VERSION
+                    )
+                }
             }
         }
     }
 
     post {
+
         success {
-            echo 'pipeline executed successfully!'
+            echo 'Pipeline executed successfully!'
         }
+
         failure {
-            echo 'pipeline failed, check logs for details'
+            echo 'Pipeline failed, check logs for details'
         }
+
         always {
             cleanWs()
         }
